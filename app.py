@@ -137,7 +137,7 @@ def main():
                 else:
                     with st.spinner("Processing images..."):
                         # Assuming False for best_rf_model unless specified otherwise
-                        results_df = process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=False)
+                        results_df = process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=True)
                     
                     if not results_df.empty:
                         st.success("Analysis Complete!")
@@ -262,4 +262,5 @@ def main():
                         st.error(f"Error: {e}")
 
 if __name__ == "__main__":
+
     main()
