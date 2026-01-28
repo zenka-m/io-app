@@ -253,7 +253,7 @@ def main():
                 else:
                     try:
                         test_ids = dm.get_data_indices(cfg.TEST_DATA_PATH)
-                        X_test, valid_ids = pp.process_dataset(dm, test_ids, cfg.TEST_DATA_PATH, include_higher_derivs=False)
+                        X_test, valid_ids = pp.process_dataset(dm, test_ids, cfg.TEST_DATA_PATH, include_higher_derivs=True)
                         preds_df = mm.predict(X_test)
                         dm.save_submission(preds_df.values, filename="submission_app.csv")
                         with open("submission_app.csv", "rb") as f:
@@ -264,4 +264,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 
