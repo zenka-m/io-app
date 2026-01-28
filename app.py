@@ -203,47 +203,80 @@ def main():
                         ax.set_ylabel("Reflectance")
                         st.pyplot(fig)
 
-        # TAB 3: FEATURE SELECTION
+       # TAB 3: FEATURE SELECTION
         with tabs[2]:
-            st.subheader("Feature Importance")
+            st.subheader("Feature Analysis")
+            
             if mm.selector is None:
                 st.info("No feature selection active.")
             else:
                 selectors_to_show = {}
                 
+                # --- 1. UNPACK SELECTOR ---
                 if isinstance(mm.selector, dict):
-                    st.info("Displaying ranking for each target parameter separately.")
-                    selectors_to_show = mm.selector
+                    if 'selector' in mm.selector:
+                        selectors_to_show = {'Global Selector': mm.selector['selector']}
+                    else:
+                        selectors_to_show = mm.selector
                 else:
                     selectors_to_show = {'Global Selector': mm.selector}
                 
+                # --- 2. DISPLAY LOOP ---
                 for key, sel_obj in selectors_to_show.items():
                     with st.expander(f"Parameter: {key}", expanded=True):
+                        
+                        # --- EXTRACT INDICES ---
+                        indices = None
+                        try:
+                            if hasattr(sel_obj, 'get_support'):
+                                indices = sel_obj.get_support(indices=True)
+                            elif hasattr(sel_obj, 'selector_') and hasattr(sel_obj.selector_, 'get_support'):
+                                indices = sel_obj.selector_.get_support(indices=True)
+                            elif hasattr(sel_obj, 'support_'):
+                                indices = np.where(sel_obj.support_)[0]
+                        except Exception as e:
+                            st.error(f"Error extracting indices: {e}")
+
+                        # --- DISPLAY CLEAN LIST ---
+                        if indices is not None:
+                            st.write("**Selected Feature Indices:**")
+                            # Convert numpy ints to standard python ints for clean display
+                            clean_list = [int(x) for x in indices]
+                            
+                            st.code(str(clean_list), language=None)
+                            st.write(f"Total count: {len(clean_list)}")
+                        else:
+                            st.warning("Could not determine indices.")
+
+                        st.markdown("---")
+                        
+                        # --- GRAPH ---
                         try:
                             ranking = None
                             n_features = "Unknown"
 
-                            # Check if Wrapper or RFE
-                            if hasattr(sel_obj, 'ranking_'): # RFE object
+                            # Get ranking data
+                            if hasattr(sel_obj, 'ranking_'): 
                                 ranking = sel_obj.ranking_
                                 n_features = getattr(sel_obj, 'n_features_to_select', 'N/A')
-                            elif hasattr(sel_obj, 'selector_'): # Custom Wrapper
+                            elif hasattr(sel_obj, 'selector_') and hasattr(sel_obj.selector_, 'ranking_'): 
                                 ranking = sel_obj.selector_.ranking_
                                 n_features = getattr(sel_obj.selector_, 'n_features_to_select', 'N/A')
                             
-                            st.write(f"Reduced to: **{n_features}** features.")
-
                             if ranking is not None:
-                                fig_r, ax_r = plt.subplots(figsize=(10, 3))
-                                ax_r.bar(range(len(ranking)), ranking, color='purple')
+                                fig_r, ax_r = plt.subplots(figsize=(10, 4)) 
+                                ax_r.bar(range(len(ranking)), ranking, color="#4D4AEB") 
                                 ax_r.set_title(f"Feature Ranking for {key}")
-                                ax_r.set_xlabel("Feature Index")
-                                ax_r.set_ylabel("Rank")
-                                ax_r.axhline(y=1.5, color='r', linestyle='--')
+                                ax_r.set_xlabel("Feature Index (0-449)")
+                                ax_r.set_ylabel("Rank (1 = Best)")
+                                ax_r.axhline(y=1.5, color='r', linestyle='--', label="Selection Cutoff")
+                                ax_r.legend()
                                 st.pyplot(fig_r)
-                        except Exception as e:
-                            st.warning(f"Could not visualize {key}: {e}")
+                            else:
+                                st.warning("Ranking data not available.")
 
+                        except Exception as e:
+                            st.warning(f"Could not visualize ranking: {e}")
         # TAB 4: SUBMISSION
         with tabs[3]:
             st.subheader("Batch Submission")
