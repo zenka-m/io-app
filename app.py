@@ -95,7 +95,7 @@ def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=True):
             try:
                 img = dm.load_image_from_path(temp_path)
                 if img is not None:
-                    features = pp.process_image(img, include_higher_derivs=include_higher_derivs)
+                    features = pp.process_image(img, include_higher_derivs=True)
                     if features is not None:
                         features_reshaped = features.reshape(1, -1)
                         pred_df = mm.predict(features_reshaped)
