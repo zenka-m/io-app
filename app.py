@@ -85,7 +85,7 @@ def create_pdf(dataframe):
         
     return pdf.output(dest='S').encode('latin-1')
 
-def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=False):
+def process_analysis(uploaded_files, dm, pp, mm, include_higher_derivs=True):
     results_list = []
     progress_bar = st.progress(0)
     
@@ -264,3 +264,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
